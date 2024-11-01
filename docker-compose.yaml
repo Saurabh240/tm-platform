@@ -51,9 +51,9 @@ services:
   seed:
     image: node:16
     working_dir: /app
-    command: "node src/seed.js" # Adjust if using TypeScript, you may need `ts-node src/seed.ts`
+    command: "ts-node src/seed.ts" # Adjust if using TypeScript, you may need `ts-node src/seed.ts`
     environment:
-    - MONGO_URI=mongodb://mongo:27017/tm_database
+    - MONGO_URI=mongodb://mongo:27017/tm-db
     depends_on:
     - backend
     - mongo
