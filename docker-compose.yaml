@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./tm-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./tm-backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/tm-db
+      - KAFKA_BROKER=kafka:9092
+    depends_on:
+      - mongo
+      - kafka
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    environment:
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_BROKER_ID=1
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    ports:
+      - "2181:2181"
+      
+  seed:
+    image: node:16
+    working_dir: /app
+    command: "node src/seed.js" # Adjust if using TypeScript, you may need `ts-node src/seed.ts`
+    environment:
+    - MONGO_URI=mongodb://mongo:27017/tm_database
+    depends_on:
+    - backend
+    - mongo
+    volumes:
+    - ./tm-backend:/app    
+
+volumes:
+  mongo-data:
